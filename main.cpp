@@ -7,44 +7,61 @@
 #include <string.h>
 using namespace std;
 
-vector<char *> parse(char *cstr){               //parse function
+void parse(char **parsed_cmd, char cstr[]){         //parse function 
 
-    vector<char *> parsed_cmd;                  //vector of char pointers
-    char * single_cmd = strtok (cstr, " ");     //break up string into 
-                                                    //tokens with space as
-                                                    //delimiter
-    parsed_cmd.push_back(single_cmd);           //push back tokens into
-                                                    //vector
-    single_cmd = strtok(NULL, " ");             //end vector with null
-    parsed_cmd.push_back(NULL);
-
-    return parsed_cmd;
+    char *single_cmd = strtok(cstr, " ");           //break up cstr using " " as delimiter
+    int i = 0;                                      //counter             
+    while(single_cmd != NULL) {                     //push back tokens into array
+        parsed_cmd[i] = single_cmd;
+        i++;
+        single_cmd = strtok(NULL, " ");
+    }
+      parsed_cmd[i] = NULL;                         //end array with null 
+    
+    return;
 }
 
-void execute(vector<char*>){                    //execute function
-                                                    //(incomplete)
+void execute(char **cstr){                    //execute function
 
-    int counter=0;
-    pid_t pid = fork();
+    int status=0;                               
+    pid_t pid = fork();                        
 
-    if(pid==0){
-       // if(execvp();
+    if(pid < 0){                                 //for fork error
+       perror("fork error");                        //output error
+       exit(-1);
+    }
+    else if(pid == 0){                          //for child
+        wait(status);                               //wait for process
+    }
+    else{                                       //for parent
+        execvp(cstr[0], cstr);                      //execute command
     }
 
     return;    
 
 } 
-        
 
 
 int main(){
-    string cmd;                                 //create string var
-    cout << "$ ";                               //prompt for input
-    cin >> cmd;                                 //store in cmd var
-    char *ccmd = new char[cmd.length()+1];      //make char array 
-    strcpy(ccmd, cmd.c_str());                  //copy string into char
-                                                    //array
+    char token[256];                        //array to input command line
+    cout << "$ ";                           //command prompt                  
+    cin.getline(token,256);                 //get user input
 
-    parse(ccmd);                                //parse string
+    string ex(token);                       //checks if exit
+    if(ex == "exit"){
+        cout << "Exiting shell" << endl;
+    }
+
+    char **parsed = new char*[256];         //create new array for parsed cmd  
+    parse(parsed,token);                    //commence parsing
+
+    execute(parsed);                        //execute what's in the array
+    /*                                      //for checking what's in the array
+    for(int j = 0; j < 256; ++j){
+        cout << parsed[j] << ' ';
+    }
+    */
+
+   
     return 0;
 }
